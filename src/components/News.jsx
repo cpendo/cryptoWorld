@@ -44,7 +44,7 @@ const News = ({ simplified }) => {
           </Select>
         </Col>
       )}
-      {News.articles.map((article, i) => (
+      {News?.articles?.map((article, i) => (
         <Col xs={24} sm={12} lg={8} key={i}>
           <Card hoverable className="news-card">
             <a href={article.url} target="_blank" rel="noreferrer">
