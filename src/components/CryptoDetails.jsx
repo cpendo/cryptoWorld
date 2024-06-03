@@ -181,7 +181,7 @@ const CryptoDetails = () => {
           <Title level={3} className="coin-details-heading">
             {cryptoDetails.name} Links
           </Title>
-          {cryptoDetails.links.filter(item => ['website'].includes(item.type)).map((link) => (
+          {cryptoDetails.links?.filter(item => ['website'].includes(item.type)).map((link) => (
             <Row className="coin-link" key={link.name}>
               <Title level={5} className="link-name">
                 {link.type}
