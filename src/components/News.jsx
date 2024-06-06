@@ -20,10 +20,6 @@ const News = ({ simplified }) => {
   const articlesCount = simplified ? 6 : 12;
   const selectedArticles = News?.items?.slice(0, articlesCount);
 
-  console.log(News);
-  console.log(selectedArticles);
-  console.log(new Date(1717577040000));
-
   if (isFetching) return <Spinner />;
 
   return (
