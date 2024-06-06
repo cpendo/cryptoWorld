@@ -1,17 +1,20 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+const newsApiHeaders = {
+  "X-RapidAPI-Key": import.meta.env.VITE_RAPIDAPI_KEY,
+  "X-RapidAPI-Host": "google-news13.p.rapidapi.com",
+};
 
-const baseUrl = "https://newsapi.org/v2/everything";
+const baseUrl = "https://google-news13.p.rapidapi.com";
 
-//GET https://newsapi.org/v2/everything?q=Apple&from=2024-05-22&sortBy=popularity&apiKey=API_KEY
+const createRequest = (url) => ({ url, headers: newsApiHeaders });
 
 export const newsApi = createApi({
   reducerPath: "newsApi",
   baseQuery: fetchBaseQuery({ baseUrl }),
   endpoints: (builder) => ({
-    getCryptoNews: builder.query({
-      query: ({ newsCategory, count }) =>
-        `/?q=${newsCategory}&pageSize=${count}&excludeDomains=yahoo.com&language=en&apikey=${import.meta.env.VITE_NEWSAPI_KEY}`,
+      getCryptoNews: builder.query({
+      query: (keyword) => createRequest(`/search?keyword=${keyword}&lr=en-US`),
     }),
   }),
 });

@@ -14,10 +14,15 @@ const demoImage =
 const News = ({ simplified }) => {
   const [newsCategory, setNewsCategory] = useState("Cryptocurrency");
   const { data } = useGetCryptosQuery(100);
-  const { data: News, isFetching } = useGetCryptoNewsQuery({
-    newsCategory,
-    count: simplified ? 6 : 12,
-  });
+
+  const { data: News, isFetching } = useGetCryptoNewsQuery(newsCategory);
+
+  const articlesCount = simplified ? 6 : 12;
+  const selectedArticles = News?.items?.slice(0, articlesCount);
+
+  console.log(News);
+  console.log(selectedArticles);
+  console.log(new Date(1717577040000));
 
   if (isFetching) return <Spinner />;
 
@@ -44,13 +49,13 @@ const News = ({ simplified }) => {
           </Select>
         </Col>
       )}
-      {News?.articles?.map((article, i) => (
+      {selectedArticles?.map((article, i) => (
         <Col xs={24} sm={12} lg={8} key={i}>
           <Card hoverable className="news-card">
-            <a href={article.url} target="_blank" rel="noreferrer">
+            <a href={article.newsUrl} target="_blank" rel="noreferrer">
               <div className="news-image-container">
                 <img
-                  src={article?.urlToImage || demoImage}
+                  src={article?.images?.thumbnailProxied || demoImage}
                   style={{
                     width: "100%",
                     height: "100px",
@@ -60,14 +65,19 @@ const News = ({ simplified }) => {
                 />
               </div>
               <Title className="news-title heading" level={3}>
-                {article.title}
+                {article.title.length > 100
+                  ? `${article.title.substring(0, 100)}...`
+                  : article.title}
               </Title>
               <div className="provider-container">
                 <div>
-                  <Text>{article.author}</Text>
+                  <Text>{article.publisher}</Text>
                 </div>
                 <Text>
-                  {moment(article.publishedAt).startOf("ss").fromNow()}
+                  {moment
+                    .unix(article.timestamp / 1000)
+                    .startOf("ss")
+                    .fromNow()}
                 </Text>
               </div>
             </a>
