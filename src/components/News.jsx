@@ -1,86 +1,109 @@
-import { Select, Typography, Row, Col, Card } from "antd";
 import moment from "moment";
 import PropTypes from "prop-types";
 import { useState } from "react";
+
 import { useGetCryptoNewsQuery } from "../features/newsApi";
 import { useGetCryptosQuery } from "../features/cryptoApi";
-import Spinner from "./Spinner";
-const { Text, Title } = Typography;
-const { Option } = Select;
+import Skeleton from "./Skeleton";
 
 const demoImage =
   "https://www.bing.com/th?id=OVFT.mpzuVZnv8dwIMRfQGPbOPC&pid=News";
 
+const NewsCardSkeleton = () => (
+  <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden flex flex-col">
+    <div className="aspect-video">
+      <Skeleton className="w-full h-full" rounded="rounded-none" />
+    </div>
+    <div className="flex flex-col gap-3 p-5 flex-1">
+      <Skeleton className="h-5 w-full" />
+      <Skeleton className="h-5 w-4/5" />
+      <Skeleton className="h-5 w-3/5" />
+      <div className="mt-auto flex items-center justify-between pt-3 border-t border-zinc-100">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+    </div>
+  </div>
+);
+
 const News = ({ simplified }) => {
   const [newsCategory, setNewsCategory] = useState("Cryptocurrency");
-  const { data } = useGetCryptosQuery(100);
-
-  const { data: News, isFetching } = useGetCryptoNewsQuery(newsCategory);
+  const { data: coinsData } = useGetCryptosQuery(100);
+  const { data: newsData, isFetching } = useGetCryptoNewsQuery(newsCategory);
 
   const articlesCount = simplified ? 6 : 12;
-  const selectedArticles = News?.items?.slice(0, articlesCount);
-
-  if (isFetching) return <Spinner />;
+  const selectedArticles = newsData?.items?.slice(0, articlesCount) ?? [];
 
   return (
-    <Row gutter={[24, 24]}>
+    <div className="flex flex-col gap-6">
       {!simplified && (
-        <Col span={24}>
-          <Select
-            showSearch
-            className="select-news"
-            placeholder="Select a crypto"
-            optionFilterProp="children"
-            onChange={(value) => setNewsCategory(value)}
-            filterOption={(input, option) =>
-              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-            }
+        <div>
+          <h1 className="font-heading text-5xl sm:text-6xl text-zinc-900 mb-6 tracking-wide">
+            Crypto News
+          </h1>
+          <select
+            value={newsCategory}
+            onChange={(e) => setNewsCategory(e.target.value)}
+            disabled={isFetching}
+            className="w-full sm:w-72 px-4 py-2.5 rounded-full bg-white border border-zinc-200 text-zinc-900 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-colors appearance-none cursor-pointer disabled:opacity-60"
+            aria-label="Filter news by category"
           >
-            <Option value="Cryptocurency">Cryptocurrency</Option>
-            {data?.data?.coins?.map((currency, i) => (
-              <Option key={i} value={currency.name}>
-                {currency.name}
-              </Option>
+            <option value="Cryptocurrency">Cryptocurrency</option>
+            {coinsData?.data?.coins?.map((c) => (
+              <option key={c.uuid} value={c.name}>
+                {c.name}
+              </option>
             ))}
-          </Select>
-        </Col>
+          </select>
+        </div>
       )}
-      {selectedArticles?.map((article, i) => (
-        <Col xs={24} sm={12} lg={8} key={i}>
-          <Card hoverable className="news-card">
-            <a href={article.newsUrl} target="_blank" rel="noreferrer">
-              <div className="news-image-container">
+
+      {isFetching ? (
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+          role="status"
+          aria-label="Loading news"
+        >
+          {Array.from({ length: articlesCount }).map((_, i) => (
+            <NewsCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {selectedArticles.map((article, i) => (
+            <a
+              key={i}
+              href={article.newsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group rounded-2xl border border-zinc-200 bg-white overflow-hidden flex flex-col hover:border-green-400 hover:shadow-md transition-all"
+            >
+              <div className="aspect-video bg-zinc-100 overflow-hidden">
                 <img
-                  src={article?.images?.thumbnailProxied || demoImage}
-                  style={{
-                    width: "100%",
-                    height: "100px",
-                    objectFit: "cover",
-                  }}
-                  alt="news-image"
+                  src={article.images?.thumbnailProxied || demoImage}
+                  alt=""
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <Title className="news-title heading" level={3}>
-                {article.title.length > 100
-                  ? `${article.title.substring(0, 100)}...`
-                  : article.title}
-              </Title>
-              <div className="provider-container">
-                <div>
-                  <Text>{article.publisher}</Text>
+              <div className="flex flex-col gap-3 p-5 flex-1">
+                <h3 className="font-heading text-xl text-zinc-900 leading-tight group-hover:text-green-600 transition-colors line-clamp-3">
+                  {article.title}
+                </h3>
+                <div className="mt-auto flex items-center justify-between text-xs text-zinc-500 pt-3 border-t border-zinc-100">
+                  <span className="truncate">{article.publisher}</span>
+                  <span className="flex-shrink-0 ml-3">
+                    {moment
+                      .unix(article.timestamp / 1000)
+                      .startOf("ss")
+                      .fromNow()}
+                  </span>
                 </div>
-                <Text>
-                  {moment
-                    .unix(article.timestamp / 1000)
-                    .startOf("ss")
-                    .fromNow()}
-                </Text>
               </div>
             </a>
-          </Card>
-        </Col>
-      ))}
-    </Row>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
